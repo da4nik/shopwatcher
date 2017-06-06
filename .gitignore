@@ -32,3 +32,5 @@ _testmain.go
 .env
 .glide/
 vendor/
+
+shopwatcher
