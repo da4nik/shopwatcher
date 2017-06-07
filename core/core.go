@@ -7,6 +7,7 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/da4nik/shopwatcher/db"
+	"github.com/da4nik/shopwatcher/integrations"
 	"github.com/da4nik/shopwatcher/parsers"
 	"github.com/da4nik/shopwatcher/types"
 )
@@ -32,11 +33,11 @@ func scheduler(ctx context.Context) {
 		}
 		wg.Wait()
 
-		log.Infoln("Processing done, sleeping for 1 minute.")
+		log.Infoln("Processing done, sleeping for 30 seconds.")
 		select {
 		case <-ctx.Done():
 			working = false
-		case <-time.After(time.Minute * 1):
+		case <-time.After(time.Second * 30):
 		}
 	}
 	log.Infoln("Scheduler finished.")
@@ -54,12 +55,15 @@ func parseProduct(product types.Product, wg *sync.WaitGroup) {
 		return
 	}
 
+	// integrations.Notify(product)
+	newProduct.Users = product.Users
+
 	if product.Equal(newProduct) {
 		return
 	}
 
 	db.SaveProduct(newProduct)
-	// TODO: Emit product change event
+	integrations.Notify(newProduct)
 }
 
 func logger() *logrus.Entry {

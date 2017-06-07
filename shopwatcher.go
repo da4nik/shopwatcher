@@ -6,6 +6,10 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/da4nik/shopwatcher/integrations"
+	_ "github.com/da4nik/shopwatcher/integrations/telegram"
+	_ "github.com/joho/godotenv/autoload"
+
 	"github.com/Sirupsen/logrus"
 	"github.com/da4nik/shopwatcher/core"
 	"github.com/da4nik/shopwatcher/db"
@@ -28,6 +32,9 @@ func main() {
 	logrus.SetLevel(logrus.DebugLevel)
 
 	defer db.Close()
+
+	integrations.Start()
+	defer integrations.Stop()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	core.StartScheduler(ctx)
