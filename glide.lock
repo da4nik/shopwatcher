@@ -1,14 +1,20 @@
-hash: 06f59574dd9df6f42d129d1ef59685f5e60df2a025eeeeebffbfcb0d78b63e30
-updated: 2017-06-06T22:12:34.139936912+03:00
+hash: 7fd538dbbdf311c9871e9519820fdb12b59f1c1607bb82af9c68d484baf8eb5c
+updated: 2017-06-07T13:49:46.752992761+03:00
 imports:
 - name: github.com/andybalholm/cascadia
   version: 349dd0209470eabd9514242c688c403c0926d266
 - name: github.com/boltdb/bolt
   version: 583e8937c61f1af6513608ccc75c97b6abdf4ff9
+- name: github.com/joho/godotenv
+  version: 726cc8b906e3d31c70a9671c90a13716a8d3f50d
+  subpackages:
+  - autoload
 - name: github.com/PuerkitoBio/goquery
   version: e1271ee34c6a305e38566ecd27ae374944907ee9
 - name: github.com/Sirupsen/logrus
   version: ba1b36c82c5e05c4f912a88eab0dcd91a171688f
+- name: github.com/technoweenie/multipartstreamer
+  version: a90a01d73ae432e2611d178c18367fbaa13e0154
 - name: golang.org/x/net
   version: f315505cf3349909cdf013ea56690da34e96a451
   subpackages:
@@ -18,4 +24,6 @@ imports:
   version: f3918c30c5c2cb527c0b071a27c35120a6c0719a
   subpackages:
   - unix
+- name: gopkg.in/telegram-bot-api.v4
+  version: 0a57807db79efce7f6719fbb2c0e0f83fda79aec
 testImports: []
