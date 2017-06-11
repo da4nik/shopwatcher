@@ -2,7 +2,7 @@ package db
 
 import (
 	"encoding/json"
-	"strings"
+	"strconv"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/boltdb/bolt"
@@ -10,9 +10,7 @@ import (
 )
 
 // LoadProduct - reads product from DB
-func LoadProduct(url string) (types.Product, error) {
-	url = strings.Trim(url, " \n")
-
+func LoadProduct(id int) (types.Product, error) {
 	var product types.Product
 
 	dbase := Connection()
@@ -20,7 +18,8 @@ func LoadProduct(url string) (types.Product, error) {
 		var err error
 		b := tx.Bucket([]byte(ProductsBucket))
 
-		rawProduct := b.Get([]byte(url))
+		dbID := strconv.Itoa(id)
+		rawProduct := b.Get([]byte(dbID))
 		if product, err = UnmarshalProduct(rawProduct); err != nil {
 			return err
 		}
@@ -57,12 +56,19 @@ func SaveProduct(product types.Product) error {
 	err := dbase.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(ProductsBucket))
 
+		// Fill ID with next sequence value
+		if product.ID == 0 {
+			id, _ := b.NextSequence()
+			product.ID = int(id)
+		}
+
 		data, errn := json.Marshal(product)
 		if errn != nil {
 			return errn
 		}
 
-		errn = b.Put([]byte(product.URL), data)
+		key := strconv.Itoa(product.ID)
+		errn = b.Put([]byte(key), data)
 		if errn != nil {
 			return errn
 		}
@@ -70,6 +76,42 @@ func SaveProduct(product types.Product) error {
 		return nil
 	})
 	return err
+}
+
+// DeleteProduct deletes product from list
+func DeleteProduct(product types.Product) error {
+	log := productsLogger()
+
+	log.Debugf("Deleting product %s\n", product.Name)
+
+	dbase := Connection()
+	err := dbase.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(ProductsBucket))
+
+		key := strconv.Itoa(product.ID)
+		errn := b.Delete([]byte(key))
+		if errn != nil {
+			return errn
+		}
+
+		return nil
+	})
+	return err
+}
+
+// DeleteProductByID deletes product by it's ID
+func DeleteProductByID(ID string) error {
+	intID, err := strconv.Atoi(ID)
+	if err != nil {
+		return err
+	}
+
+	product, err := LoadProduct(intID)
+	if err != nil {
+		return err
+	}
+
+	return DeleteProduct(product)
 }
 
 // UnmarshalProduct - unmarshal product from db

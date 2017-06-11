@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/da4nik/shopwatcher/db"
 	"github.com/da4nik/shopwatcher/types"
 
 	"gopkg.in/telegram-bot-api.v4"
@@ -21,6 +22,8 @@ var (
 	connected  = false
 	commands   = map[string]func(*tgbotapi.Message){
 		"/add":   addURL,
+		"/list":  list,
+		"/rm":    rm,
 		"/start": help,
 	}
 )
@@ -134,12 +137,55 @@ func sendChanges(product types.Product) {
 
 }
 
+func list(msg *tgbotapi.Message) {
+	products, _ := db.AllProducts()
+	currentChatID := strconv.FormatInt(msg.Chat.ID, 10)
+
+	userProducts := make([]types.Product, 0)
+	for _, product := range products {
+		for _, user := range product.Users {
+			if user.ChatID == currentChatID {
+				userProducts = append(userProducts, product)
+			}
+		}
+	}
+
+	if len(userProducts) == 0 {
+		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, "You are not tracking any products currently. Use /add to start tracking something."))
+		return
+	}
+
+	msgText := "Your currently tracking products:\n"
+	for _, product := range userProducts {
+		msgText = msgText + fmt.Sprintf("_%d_ - [%s](%s)\n", product.ID, product.Name, product.URL)
+	}
+
+	message := tgbotapi.NewMessage(msg.Chat.ID, msgText)
+	message.DisableWebPagePreview = true
+	message.ParseMode = "markdown"
+	bot.Send(message)
+}
+
+func rm(msg *tgbotapi.Message) {
+	productID := strings.Split(msg.Text, "/rm ")[1]
+	productID = strings.Trim(productID, " \n")
+	err := db.DeleteProductByID(productID)
+	if err != nil {
+		return
+	}
+
+	bot.Send(tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprintf("Product %s is not being tracked anymore.", productID)))
+}
+
 func help(msg *tgbotapi.Message) {
 	if !connected {
 		return
 	}
 
-	msgText := "/add <url> - add new product url to watch list\n"
+	msgText := "Avalable commands:\n" +
+		"/add <url> - add new product url to watch list\n" +
+		"/list - shows all tracked items\n" +
+		"/rm <id> - removes item with <id> (from a list) from tracking\n"
 
 	message := tgbotapi.NewMessage(msg.Chat.ID, msgText)
 	bot.Send(message)

@@ -55,10 +55,11 @@ func parseProduct(product types.Product, wg *sync.WaitGroup) {
 		return
 	}
 
-	// integrations.Notify(product)
 	newProduct.Users = product.Users
+	newProduct.ID = product.ID
 
 	if product.Equal(newProduct) {
+		log.Debugf("Product: %s is not changed.", product.Name)
 		return
 	}
 

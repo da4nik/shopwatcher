@@ -1,8 +1,6 @@
 package types
 
-import (
-	"reflect"
-)
+import "reflect"
 
 // Size - size availability
 type Size struct {
@@ -18,6 +16,7 @@ type User struct {
 
 // Product represents parsed product
 type Product struct {
+	ID        int    `json:"id"`
 	URL       string `json:"url"`
 	Shop      string `json:"shop"`
 	Name      string `json:"name"`
